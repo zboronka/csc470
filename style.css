@@ -1,0 +1,54 @@
+html {
+	color: green;
+}
+
+body {
+	background-color: black;
+	margin-top: 0px;
+}
+
+header, section {
+	width: 75%;
+	margin: auto;
+	border-style: double;
+	border-top-style: none;
+	border-color: red;
+	border-width: medium;
+	padding: 10px;
+}
+
+object, h1, p, ol {
+	width: 90%;
+	margin: auto;
+}
+
+header {
+	text-align: center;
+	font-size: 22px;
+	font-weight: bold;
+	color: red;
+}
+
+section {
+	border-bottom-style: double;
+	border-color: red;
+	border-width: medium;
+	padding: 10px;
+}
+
+h1 {
+	font-size: 18px;
+	color: greenyellow;
+}
+
+li {
+	font-weight: bold;
+}
+
+object {
+	background-color: grey;
+}
+
+b {
+	color: red;
+}
