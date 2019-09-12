@@ -2,13 +2,18 @@ var gl;
 var points = [];
 const third = .333333333333;
 var scale = scalem(third, third, 1);
+var mICenter;
+var mCenter;
+var mScale;
+var mTranslate;
+var program;
 
 document.getElementById("draw").onclick = function() {
 	draw(document.getElementById("level").value);
 };
 
 window.onload = function init() {
-	draw(3);
+	draw(1);
 }
 
 function draw(level) {
@@ -17,6 +22,28 @@ function draw(level) {
     
     gl = WebGLUtils.setupWebGL( canvas );
     if ( !gl ) { alert( "WebGL isn't available" ); }
+
+    //
+    //  Configure WebGL
+    //
+    gl.viewport( 0, 0, canvas.width, canvas.height );
+    gl.clearColor( 1.0, 0.0, 0.0, 1.0 );
+    
+    //  Load shaders and initialize attribute buffers
+    
+    program = initShaders( gl, "vertex-shader", "fragment-shader" );
+    gl.useProgram( program );
+
+	mICenter = gl.getUniformLocation(program, "mICenter");
+	mCenter = gl.getUniformLocation(program, "mCenter");
+	mScale = gl.getUniformLocation(program, "mScale");
+	mTranslate = gl.getUniformLocation(program, "mTranslate");
+	gl.uniformMatrix4fv(mICenter, false, flatten(translate(0,0,0)));
+	gl.uniformMatrix4fv(mScale, false, flatten(translate(0,0,0)));
+	gl.uniformMatrix4fv(mCenter, false, flatten(translate(0, 0, 0)));
+	gl.uniformMatrix4fv(mTranslate, false, flatten(translate(0, 0, 0)));
+
+    gl.clear( gl.COLOR_BUFFER_BIT );
 
     // Four Vertices
     var vertices = [
@@ -27,18 +54,11 @@ function draw(level) {
     ];
 
 	divideSquare(vertices[0], vertices[1], vertices[2], vertices[3], level);
+}
 
-    //
-    //  Configure WebGL
-    //
-    gl.viewport( 0, 0, canvas.width, canvas.height );
-    gl.clearColor( 1.0, 0.0, 0.0, 1.0 );
-    
-    //  Load shaders and initialize attribute buffers
-    
-    var program = initShaders( gl, "vertex-shader", "fragment-shader" );
-    gl.useProgram( program );
-    
+function square(a, b, c, d) {
+	points.push(a, b, c, d, b, c);
+
     // Load the data into the GPU
     
     var bufferId = gl.createBuffer();
@@ -51,11 +71,9 @@ function draw(level) {
     gl.vertexAttribPointer( vPosition, 2, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( vPosition );
 
-    render();
-}
+    gl.drawArrays( gl.TRIANGLES, 0, points.length );
 
-function square(a, b, c, d) {
-	points.push(a, b, c, d, b, c);
+	points = []
 }
 
 function divideSquare(a, b, c, d, count) {
@@ -79,14 +97,26 @@ function divideSquare(a, b, c, d, count) {
 		var upl = translate(-ab,ab,0);
 
 		divideSquare(a, b, c, d, count);
-		divideSquare(sMove(mid, up, a), sMove(mid, up, b), sMove(mid, up, c), sMove(mid, up, d), count);
-		divideSquare(sMove(mid, upr, a), sMove(mid, upr, b), sMove(mid, upr, c), sMove(mid, upr, d), count);
-		divideSquare(sMove(mid, r, a), sMove(mid, r, b), sMove(mid, r, c), sMove(mid, r, d), count);
-		divideSquare(sMove(mid, dnr, a), sMove(mid, dnr, b), sMove(mid, dnr, c), sMove(mid, dnr, d), count);
-		divideSquare(sMove(mid, dn, a), sMove(mid, dn, b), sMove(mid, dn, c), sMove(mid, dn, d), count);
-		divideSquare(sMove(mid, dnl, a), sMove(mid, dnl, b), sMove(mid, dnl, c), sMove(mid, dnl, d), count);
-		divideSquare(sMove(mid, l, a), sMove(mid, l, b), sMove(mid, l, c), sMove(mid, l, d), count);
-		divideSquare(sMove(mid, upl, a), sMove(mid, upl, b), sMove(mid, upl, c), sMove(mid, upl, d), count);
+		gl.uniformMatrix4fv(mICenter, false, flatten(inverse(translate(mid[0], mid[1], 0))));
+		gl.uniformMatrix4fv(mCenter, false, flatten(translate(mid[0], mid[1], 0)));
+		gl.uniformMatrix4fv(mScale, false, flatten(scale));
+
+		gl.uniformMatrix4fv(mTranslate, false, flatten(up));
+		divideSquare(a, b, c, d, count);
+		gl.uniformMatrix4fv(mTranslate, false, flatten(upr));
+		divideSquare(a, b, c, d, count);
+		gl.uniformMatrix4fv(mTranslate, false, flatten(r));
+		divideSquare(a, b, c, d, count);
+		gl.uniformMatrix4fv(mTranslate, false, flatten(dnr));
+		divideSquare(a, b, c, d, count);
+		gl.uniformMatrix4fv(mTranslate, false, flatten(dn));
+		divideSquare(a, b, c, d, count);
+		gl.uniformMatrix4fv(mTranslate, false, flatten(dnl));
+		divideSquare(a, b, c, d, count);
+		gl.uniformMatrix4fv(mTranslate, false, flatten(l));
+		divideSquare(a, b, c, d, count);
+		gl.uniformMatrix4fv(mTranslate, false, flatten(upl));
+		divideSquare(a, b, c, d, count);
 	}
 }
 
