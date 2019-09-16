@@ -34,30 +34,27 @@ function draw(level) {
     program = initShaders( gl, "vertex-shader", "fragment-shader" );
     gl.useProgram( program );
 
-	mICenter = gl.getUniformLocation(program, "mICenter");
-	mCenter = gl.getUniformLocation(program, "mCenter");
 	mScale = gl.getUniformLocation(program, "mScale");
 	mTranslate = gl.getUniformLocation(program, "mTranslate");
-	gl.uniformMatrix4fv(mICenter, false, flatten(translate(0,0,0)));
-	gl.uniformMatrix4fv(mScale, false, flatten(translate(0,0,0)));
-	gl.uniformMatrix4fv(mCenter, false, flatten(translate(0, 0, 0)));
+	gl.uniformMatrix4fv(mScale, false, flatten(scalem(third,third,0)));
 	gl.uniformMatrix4fv(mTranslate, false, flatten(translate(0, 0, 0)));
 
     gl.clear( gl.COLOR_BUFFER_BIT );
 
     // Four Vertices
     var vertices = [
-        vec2( -third,  third ),
-        vec2( -third, -third ),
-        vec2(  third,  third ),
-        vec2(  third, -third )
+        vec2( -1,  1 ),
+        vec2( -1, -1 ),
+        vec2(  1,  1 ),
+        vec2(  1, -1 )
     ];
 
-	divideSquare(vertices[0], vertices[1], vertices[2], vertices[3], level);
+	points.push(vertices[0], vertices[1], vertices[2], vertices[3]);
+
+	square();
 }
 
-function square(a, b, c, d) {
-	points.push(a, b, c, d, b, c);
+function square() {
 
     // Load the data into the GPU
     
@@ -71,9 +68,7 @@ function square(a, b, c, d) {
     gl.vertexAttribPointer( vPosition, 2, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( vPosition );
 
-    gl.drawArrays( gl.TRIANGLES, 0, points.length );
-
-	points = []
+    gl.drawArrays( gl.TRIANGLE_STRIP, 0, points.length );
 }
 
 function divideSquare(a, b, c, d, count) {

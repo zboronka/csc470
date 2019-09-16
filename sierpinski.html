@@ -1,17 +1,21 @@
 <!DOCTYPE html>
 <html>
 	<head>
+		<meta charset="utf-8"/>
 		<script id="vertex-shader" type="x-shader/x-vertex">
 			attribute vec4 vPosition;
-			uniform mat4 mICenter;
-			uniform mat4 mCenter;
 			uniform mat4 mScale;
 			uniform mat4 mTranslate;
 
 			void
 			main()
 			{
-				gl_Position = mTranslate*mCenter*mScale*mICenter*vPosition;
+				mat4 scale = mScale;
+				for(int i = 0; i < 1; i++) {
+					scale *= mScale;
+				}
+
+				gl_Position = mTranslate*scale*vPosition;
 			}
 		</script>
 		<script id="fragment-shader" type="x-shader/x-fragment">
