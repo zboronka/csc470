@@ -13,10 +13,10 @@ document.getElementById("draw").onclick = function() {
 };
 
 window.onload = function init() {
-	draw(1);
+	draw(2);
 }
 
-function draw(level) {
+function draw(count) {
 	points = [];
     var canvas = document.getElementById( "gl-canvas" );
     
@@ -51,7 +51,7 @@ function draw(level) {
 
 	points.push(vertices[0], vertices[1], vertices[2], vertices[3]);
 
-	square();
+	divideSquare(translate(0,0,0), scalem(third, third, 0), count, 0);
 }
 
 function square() {
@@ -71,47 +71,62 @@ function square() {
     gl.drawArrays( gl.TRIANGLE_STRIP, 0, points.length );
 }
 
-function divideSquare(a, b, c, d, count) {
+function divideSquare(t, s, count, level) {
 	if (count == 0) {
-		square(a, b, c, d);
+		square();
 	}
 	else {
-		var ab = a[1]-b[1];
-		var abm = mix(a, b, .5);
-		var acm = mix(a, c, .5);
-		var mid = vec2(acm[0], abm[1]);
 		--count;
+		++level;
 
-		var up = translate(0,ab,0);
-		var upr = translate(ab,ab,0);
-		var r = translate(ab,0,0);
-		var dnr = translate(ab,-ab,0);
-		var dn = translate(0,-ab,0);
-		var dnl = translate(-ab,-ab,0);
-		var l = translate(-ab,0,0);
-		var upl = translate(-ab,ab,0);
+		var div = (2/Math.pow(3, level));
 
-		divideSquare(a, b, c, d, count);
-		gl.uniformMatrix4fv(mICenter, false, flatten(inverse(translate(mid[0], mid[1], 0))));
-		gl.uniformMatrix4fv(mCenter, false, flatten(translate(mid[0], mid[1], 0)));
-		gl.uniformMatrix4fv(mScale, false, flatten(scale));
+		gl.uniformMatrix4fv(mTranslate, false, flatten(t));
+		divideSquare(t, s, count, level);
 
+		s = mult(s, scalem(third, third, 0));
+
+		var up = mult(translate(0,div,0), t);
+		var upr = mult(translate(div,div,0), t);
+		var r = mult(translate(div,0,0), t);
+		var dnr = mult(translate(div,-div,0), t);
+		var dn = mult(translate(0,-div,0), t);
+		var dnl = mult(translate(-div,-div,0), t);
+		var l = mult(translate(-div,0,0), t);
+		var upl = mult(translate(-div,div,0), t);
+
+
+		gl.uniformMatrix4fv(mScale, false, flatten(s));
 		gl.uniformMatrix4fv(mTranslate, false, flatten(up));
-		divideSquare(a, b, c, d, count);
+		divideSquare(up, s, count, level);
+
+		gl.uniformMatrix4fv(mScale, false, flatten(s));
 		gl.uniformMatrix4fv(mTranslate, false, flatten(upr));
-		divideSquare(a, b, c, d, count);
+		divideSquare(upr, s, count, level);
+
+		gl.uniformMatrix4fv(mScale, false, flatten(s));
 		gl.uniformMatrix4fv(mTranslate, false, flatten(r));
-		divideSquare(a, b, c, d, count);
+		divideSquare(r, s, count, level);
+
+		gl.uniformMatrix4fv(mScale, false, flatten(s));
 		gl.uniformMatrix4fv(mTranslate, false, flatten(dnr));
-		divideSquare(a, b, c, d, count);
+		divideSquare(dnr, s, count, level);
+
+		gl.uniformMatrix4fv(mScale, false, flatten(s));
 		gl.uniformMatrix4fv(mTranslate, false, flatten(dn));
-		divideSquare(a, b, c, d, count);
+		divideSquare(dn, s, count, level);
+
+		gl.uniformMatrix4fv(mScale, false, flatten(s));
 		gl.uniformMatrix4fv(mTranslate, false, flatten(dnl));
-		divideSquare(a, b, c, d, count);
+		divideSquare(dnl, s, count, level);
+
+		gl.uniformMatrix4fv(mScale, false, flatten(s));
 		gl.uniformMatrix4fv(mTranslate, false, flatten(l));
-		divideSquare(a, b, c, d, count);
+		divideSquare(l, s, count, level);
+
+		gl.uniformMatrix4fv(mScale, false, flatten(s));
 		gl.uniformMatrix4fv(mTranslate, false, flatten(upl));
-		divideSquare(a, b, c, d, count);
+		divideSquare(upl, s, count, level);
 	}
 }
 
