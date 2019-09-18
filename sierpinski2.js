@@ -6,13 +6,30 @@ var mScale;
 var mTranslate;
 var mRotate;
 var program;
+var r = 0;
+var lev = 2;
+var check = false;
 
 document.getElementById("draw").onclick = function() {
-	draw(document.getElementById("level").value);
+	lev = document.getElementById("level").value;
+};
+
+document.getElementById("rotate").onchange = function() {
+	check = document.getElementById("rotate").checked;
 };
 
 window.onload = function init() {
 	draw(2);
+	window.requestAnimationFrame(loop);
+}
+
+function loop() {
+	if(check) {
+		r++;
+	}
+
+	draw(lev);
+	window.requestAnimationFrame(loop);
 }
 
 function draw(count) {
@@ -38,7 +55,7 @@ function draw(count) {
 	mRotate = gl.getUniformLocation(program, "mRotate");
 	gl.uniformMatrix4fv(mScale, false, flatten(scalem(third,third,0)));
 	gl.uniformMatrix4fv(mTranslate, false, flatten(translate(0, 0, 0)));
-	gl.uniformMatrix4fv(mRotate, false, flatten(rotate(.1, 0, 0)));
+	gl.uniformMatrix4fv(mRotate, false, flatten(rotateZ(r)));
 
     gl.clear( gl.COLOR_BUFFER_BIT );
 
@@ -83,7 +100,7 @@ function divideSquare(t, s, count, level) {
 		var div = (2/Math.pow(3, level));
 
 		gl.uniformMatrix4fv(mTranslate, false, flatten(t));
-		divideSquare(t, s, count, level);
+		square();
 
 		s = mult(s, scalem(third, third, 0));
 
@@ -95,7 +112,6 @@ function divideSquare(t, s, count, level) {
 		var dnl = mult(translate(-div,-div,0), t);
 		var l = mult(translate(-div,0,0), t);
 		var upl = mult(translate(-div,div,0), t);
-
 
 		gl.uniformMatrix4fv(mScale, false, flatten(s));
 		gl.uniformMatrix4fv(mTranslate, false, flatten(up));
