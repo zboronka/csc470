@@ -4,6 +4,7 @@
 		<meta charset="utf-8"/>
 		<script id="vertex-shader" type="x-shader/x-vertex">
 			attribute vec4 vPosition;
+			uniform int iScale;
 			uniform mat4 mScale;
 			uniform mat4 mTranslate;
 			uniform mat4 mRotate;
@@ -11,7 +12,12 @@
 			void
 			main()
 			{
-				gl_Position = mRotate*mTranslate*mScale*vPosition;
+				mat4 scale = mScale;
+				for(int i = 0; i < 10; i++) {
+					if (i >= iScale) { break; } 
+					scale *= mScale;
+				}
+				gl_Position = mRotate*mTranslate*scale*mRotate*vPosition;
 			}
 		</script>
 		<script id="fragment-shader" type="x-shader/x-fragment">
@@ -31,7 +37,6 @@
 		<div>
 			<form>
 				<input type="number" id="level" name="level" value="2">
-				<button id="draw" type="button">Draw</button>
 				<input type="checkbox" id="rotate">
 			</form>
 		</div>
