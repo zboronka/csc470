@@ -3,7 +3,7 @@ var points = [];
 const third = .333333333333;
 var scale = scalem(third, third, 1);
 
-document.getElementById("draw").onclick = function() {
+document.getElementById("level").onchange = function() {
 	draw(document.getElementById("level").value);
 };
 
