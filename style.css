@@ -8,7 +8,7 @@ body {
 }
 
 header, section {
-	width: 75%;
+	width: 90%;
 	margin: auto;
 	border-style: double;
 	border-top-style: none;
@@ -20,6 +20,22 @@ header, section {
 object, h1, p, ol {
 	width: 90%;
 	margin: auto;
+}
+
+canvas {
+	margin: auto;
+	display: block;
+}
+
+form {
+	margin: auto;
+	width: 250px;
+}
+
+input {
+	color: green;
+	border-color: red;
+	background-color: black;
 }
 
 header {
