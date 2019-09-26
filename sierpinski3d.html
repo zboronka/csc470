@@ -26,10 +26,13 @@
 		<script id="fragment-shader" type="x-shader/x-fragment">
 			precision mediump float;
 
+			uniform vec3 vObjColor;
+			uniform vec3 vLightColor;
+
 			void
 			main()
 			{
-				gl_FragColor = vec4( 0.0, 0, 0, 1.0 );
+				gl_FragColor = vec4( vObjColor * vLightColor, 1.0 );
 			}
 		</script>
 	</head>

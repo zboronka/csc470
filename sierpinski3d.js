@@ -4,7 +4,9 @@ var gl;
 var vPosition;
 var iScale;
 var vTrans;
-var mTranslate;
+
+var vObjColor;
+var vLightColor;
 
 var points = [];
 var scales = [];
@@ -57,16 +59,24 @@ window.onload = function() {
     //  Configure WebGL
     //
     gl.viewport( 0, 0, canvas.width, canvas.height );
-    gl.clearColor( 1.0, 0.0, 0.0, 1.0 );
+    gl.clearColor( 0.0, 0.0, 0.0, 1.0 );
 
     //  Load shaders and initialize attribute buffers
     program = initShaders( gl, "vertex-shader", "fragment-shader" );
     gl.useProgram( program );
 
+	// Load vertex shader variable locations
     vPosition = gl.getAttribLocation( program, "vPosition" );
 	iScale = gl.getAttribLocation( program, "iScale");
 	vTrans = gl.getAttribLocation( program, "vTrans");
 	mRotate = gl.getUniformLocation(program, "mRotate");
+
+	// Load fragment shader variable locations
+	vObjColor = gl.getUniformLocation( program, "vObjColor" );
+	vLightColor = gl.getUniformLocation( program, "vLightColor" );
+
+	gl.uniform3fv(vObjColor, [0.2, 0.0, 0.0]);
+	gl.uniform3fv(vLightColor, [1.0, 1.0, 1.0]);
 
 	draw(2);
 	loop();
