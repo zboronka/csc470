@@ -9,12 +9,13 @@ var mTranslate;
 var points = [];
 var scales = [];
 var trans = [];
+var normals = [];
 
 var vertices = [
-	vec2( -1,  1 ),
-	vec2( -1, -1 ),
-	vec2(  1,  1 ),
-	vec2(  1, -1 )
+	vec4( -1,  1, -1, 1),
+	vec4( -1, -1, -1, 1),
+	vec4(  1,  1, -1, 1),
+	vec4(  1, -1, -1, 1)
 ];
 var r = 0;
 var angle = 1;
@@ -72,6 +73,7 @@ function draw(count) {
 	points = [];
 	scales = [];
 	trans = [];
+	normals = [];
 
     gl.clear( gl.COLOR_BUFFER_BIT );
 	sierpinski(vec2(0,0), count, 0);
@@ -102,7 +104,7 @@ function draw(count) {
     gl.bufferData( gl.ARRAY_BUFFER, flatten(points), gl.STATIC_DRAW );
 
     // Associate out shader variables with our data buffer
-    gl.vertexAttribPointer( vPosition, 2, gl.FLOAT, false, 0, 0 );
+    gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( vPosition );
 
     gl.drawArrays( gl.TRIANGLES, 0, points.length );
@@ -111,6 +113,7 @@ function draw(count) {
 function square(transform, scale) {
 	scales.push(scale, scale, scale, scale, scale, scale);
 	points.push(vertices[0], vertices[1], vertices[2], vertices[1], vertices[2], vertices[3]);
+	normals.push(vec3(0, 0, -1), vec3(0, 0, -1), vec3(0, 0, -1), vec3(0, 0, -1), vec3(0, 0, -1), vec3(0, 0, -1));
 	trans.push(transform, transform, transform, transform, transform, transform);
 }
 

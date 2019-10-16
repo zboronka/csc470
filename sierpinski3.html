@@ -12,6 +12,10 @@
 			void
 			main()
 			{
+				mat4 mMove = mat4(vec4(1, 0, 0, 0),
+								  vec4(0, 1, 0, 0),
+								  vec4(0, 0, 1, 0),
+								  vec4(0, 0, 1, 1));
 				mat4 mTranslate = mat4(vec4(1, 0, 0, 0),
 				                       vec4(0, 1, 0, 0),
 									   vec4(0, 0, 1, 0),
@@ -20,7 +24,7 @@
 				                  vec4(  0, pow(.33,iScale+1.0),   0,   0),
 								  vec4(  0,   0,   0,   0),
 								  vec4(  0,   0,   0,   1));
-				gl_Position = mRotate*mTranslate*scale*mRotate*vPosition;
+				gl_Position = mMove*mRotate*mTranslate*scale*mRotate*vPosition;
 			}
 		</script>
 		<script id="fragment-shader" type="x-shader/x-fragment">
