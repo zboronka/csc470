@@ -8,7 +8,7 @@ var mScale;
 var mTranslate;
 var program;
 
-document.getElementById("draw").onclick = function() {
+document.getElementById("level").onchange = function() {
 	draw(document.getElementById("level").value);
 };
 
