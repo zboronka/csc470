@@ -2,6 +2,7 @@ var canvas;
 var gl;
 
 var mPerspective;
+var mCamera;
 var vPosition;
 var fScale;
 var vTrans;
@@ -26,6 +27,12 @@ var vertices = [
 	vec3(  1,  1, -1 ),
 	vec3(  1, -1, -1 ),
 ];
+
+var camera = [1, 0, 0, 0,
+	          0, 1, 0, 0,
+	          0, 0, 1, 0,
+	          0, 0, -5,1];
+
 var thetaX = 0;
 var thetaY = 0;
 var thetaZ = 0;
@@ -60,6 +67,33 @@ document.getElementById("thetaY").onchange = function() {
 document.getElementById("thetaZ").onchange = function() {
 	thetaZ = document.getElementById("thetaZ").value;
 	draw(lev);
+	console.log("blah");
+}
+
+document.onkeydown = function() {
+	if(event.code=="ArrowUp") {
+		camera[4*3+2] += .1;
+		gl.uniformMatrix4fv(mCamera, false, camera); 
+		draw(lev);
+	}
+
+	if(event.code=="ArrowDown") {
+		camera[4*3+2] -= .1;
+		gl.uniformMatrix4fv(mCamera, false, camera); 
+		draw(lev);
+	}
+	
+	if(event.code=="ArrowLeft") {
+		camera[4*3] -= .1;
+		gl.uniformMatrix4fv(mCamera, false, camera); 
+		draw(lev);
+	}
+	
+	if(event.code=="ArrowRight") {
+		camera[4*3] += .1;
+		gl.uniformMatrix4fv(mCamera, false, camera); 
+		draw(lev);
+	}
 }
 
 function loop() {
@@ -89,6 +123,7 @@ window.onload = function() {
 
 	// Load vertex shader variable locations
 	mPerspective = gl.getUniformLocation(program, "mPerspective");
+	mCamera = gl.getUniformLocation(program, "mCamera");
     vPosition = gl.getAttribLocation(program, "vPosition");
 	fScale = gl.getAttribLocation(program, "fScale");
 	vTrans = gl.getAttribLocation(program, "vTrans");
@@ -102,6 +137,9 @@ window.onload = function() {
 
 	gl.uniform3fv(vObjColor, [0.2, 0.0, 0.0]);
 	gl.uniform3fv(vLightColor, [1.0, 1.0, 1.0]);
+
+	gl.uniformMatrix4fv(mPerspective, false, flatten(perspective(30, 1, 1, 1000))); 
+	gl.uniformMatrix4fv(mCamera, false, camera); 
 
 	draw(2);
 	loop();
@@ -118,8 +156,6 @@ function draw(count) {
 	gl.uniform1f(fThetaX, radians(thetaX));
 	gl.uniform1f(fThetaY, radians(thetaY));
 	gl.uniform1f(fThetaZ, radians(thetaZ));
-
-	gl.uniformMatrix4fv(mPerspective, false, flatten(perspective(30, 1, 1, 1000))); 
 
     // Load the data into the GPU
     var bufferId = gl.createBuffer();
