@@ -1,7 +1,7 @@
 var canvas;
 var gl;
 
-var mPerspective;
+var mProjection;
 var mCamera;
 var vPosition;
 var fScale;
@@ -48,53 +48,53 @@ document.getElementById("level").onchange = function() {
 
 document.getElementById("rotate").onchange = function() {
 	check = document.getElementById("rotate").checked;
+	draw(lev)
 };
 
 document.getElementById("gl-canvas").onclick = function() {
 	angle *= -1;
-}
+};
 
 document.getElementById("thetaX").onchange = function() {
 	thetaX = document.getElementById("thetaX").value;
 	draw(lev);
-}
+};
 
 document.getElementById("thetaY").onchange = function() {
 	thetaY = document.getElementById("thetaY").value;
 	draw(lev);
-}
+};
 
 document.getElementById("thetaZ").onchange = function() {
 	thetaZ = document.getElementById("thetaZ").value;
 	draw(lev);
-	console.log("blah");
-}
+};
 
 document.onkeydown = function() {
 	if(event.code=="ArrowUp") {
-		camera[4*3+2] += .1;
+		camera[4*3+2] += .05;
 		gl.uniformMatrix4fv(mCamera, false, camera); 
 		draw(lev);
 	}
 
 	if(event.code=="ArrowDown") {
-		camera[4*3+2] -= .1;
+		camera[4*3+2] -= .05;
 		gl.uniformMatrix4fv(mCamera, false, camera); 
 		draw(lev);
 	}
 	
 	if(event.code=="ArrowLeft") {
-		camera[4*3] -= .1;
+		camera[4*3] -= .05;
 		gl.uniformMatrix4fv(mCamera, false, camera); 
 		draw(lev);
 	}
 	
 	if(event.code=="ArrowRight") {
-		camera[4*3] += .1;
+		camera[4*3] += .05;
 		gl.uniformMatrix4fv(mCamera, false, camera); 
 		draw(lev);
 	}
-}
+};
 
 function loop() {
 	if(check) {
@@ -122,7 +122,7 @@ window.onload = function() {
     gl.useProgram( program );
 
 	// Load vertex shader variable locations
-	mPerspective = gl.getUniformLocation(program, "mPerspective");
+	mProjection = gl.getUniformLocation(program, "mProjection");
 	mCamera = gl.getUniformLocation(program, "mCamera");
     vPosition = gl.getAttribLocation(program, "vPosition");
 	fScale = gl.getAttribLocation(program, "fScale");
@@ -138,7 +138,7 @@ window.onload = function() {
 	gl.uniform3fv(vObjColor, [0.2, 0.0, 0.0]);
 	gl.uniform3fv(vLightColor, [1.0, 1.0, 1.0]);
 
-	gl.uniformMatrix4fv(mPerspective, false, flatten(perspective(30, 1, 1, 1000))); 
+	gl.uniformMatrix4fv(mProjection, false, flatten(perspective(30, 1000/700, 1, 1000))); 
 	gl.uniformMatrix4fv(mCamera, false, camera); 
 
 	draw(2);
@@ -184,7 +184,7 @@ function draw(count) {
     gl.vertexAttribPointer(vPosition, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
 
-    gl.drawArrays(gl.LINES, 0, points.length);
+    gl.drawArrays(check ? gl.LINES : gl.TRIANGLES, 0, points.length);
 }
 
 function square(transform, scale) {
