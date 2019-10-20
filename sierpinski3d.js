@@ -2,7 +2,9 @@ var canvas;
 var gl;
 
 var mProjection;
-var mCamera;
+var mView;
+var mModel;
+
 var vPosition;
 var fScale;
 var vTrans;
@@ -28,27 +30,37 @@ var vertices = [
 	vec3(  1, -1, -1 ),
 ];
 
-var camera = [1, 0, 0, 0,
-	          0, 1, 0, 0,
-	          0, 0, 1, 0,
-	          0, 0, -5,1];
+var view = [vec4(1, 0, 0, 0),
+	        vec4(0, 1, 0, 0),
+	        vec4(0, 0, 1, 0),
+	        vec4(0, 0, 0, 1)];
+view.matrix = true;
+var cameraPos = vec3(0,0,0);
+var cameraDir = vec3(0,0,-1);
+var cameraUp = vec3(0,1,0);
 
-var thetaX = 0;
-var thetaY = 0;
-var thetaZ = 0;
-var r = 0;
+var yaw = 180;
+var pitch = 180;
+
+var oldX = 0;
+var oldY = 0;
+
+var model = [vec4(1, 0, 0, 0),
+	         vec4(0, 1, 0, 0),
+	         vec4(0, 0, 1, -5),
+	         vec4(0, 0, 0, 1)];
+model.matrix=true;
+
 var angle = 1;
 var lev = 2;
 var check = false;
 
 document.getElementById("level").onchange = function() {
 	lev = document.getElementById("level").value;
-	draw(lev);
 };
 
 document.getElementById("rotate").onchange = function() {
 	check = document.getElementById("rotate").checked;
-	draw(lev)
 };
 
 document.getElementById("gl-canvas").onclick = function() {
@@ -56,52 +68,64 @@ document.getElementById("gl-canvas").onclick = function() {
 };
 
 document.getElementById("thetaX").onchange = function() {
-	thetaX = document.getElementById("thetaX").value;
-	draw(lev);
+	gl.uniform1f(fThetaX, radians(document.getElementById("thetaX").value));
 };
 
 document.getElementById("thetaY").onchange = function() {
-	thetaY = document.getElementById("thetaY").value;
-	draw(lev);
+	gl.uniform1f(fThetaY, radians(document.getElementById("thetaY").value));
 };
 
 document.getElementById("thetaZ").onchange = function() {
-	thetaZ = document.getElementById("thetaZ").value;
-	draw(lev);
+	gl.uniform1f(fThetaZ, radians(document.getElementById("thetaZ").value));
 };
 
-document.onkeydown = function() {
+document.addEventListener('keydown', function() {
+	speed = .1;
 	if(event.code=="ArrowUp") {
-		camera[4*3+2] += .05;
-		gl.uniformMatrix4fv(mCamera, false, camera); 
-		draw(lev);
+		cameraPos = subtract(cameraPos, scale(speed, cameraDir));
+		view = lookAt(cameraPos, add(cameraPos, cameraDir), cameraUp);
+		gl.uniformMatrix4fv(mView, false, flatten(view)); 
 	}
 
 	if(event.code=="ArrowDown") {
-		camera[4*3+2] -= .05;
-		gl.uniformMatrix4fv(mCamera, false, camera); 
-		draw(lev);
+		cameraPos = add(cameraPos, scale(speed, cameraDir));
+		view = lookAt(cameraPos, add(cameraPos, cameraDir), cameraUp);
+		gl.uniformMatrix4fv(mView, false, flatten(view)); 
 	}
 	
 	if(event.code=="ArrowLeft") {
-		camera[4*3] -= .05;
-		gl.uniformMatrix4fv(mCamera, false, camera); 
-		draw(lev);
+		yaw -= 1;
+		cameraDir[0] = Math.sin(radians(yaw));
+		cameraDir[2] = Math.cos(radians(yaw));
+		view = lookAt(cameraPos, add(cameraPos, cameraDir), cameraUp);
+		gl.uniformMatrix4fv(mView, false, flatten(view)); 
 	}
 	
 	if(event.code=="ArrowRight") {
-		camera[4*3] += .05;
-		gl.uniformMatrix4fv(mCamera, false, camera); 
-		draw(lev);
+		yaw += 1;
+		cameraDir[0] = Math.sin(radians(yaw));
+		cameraDir[2] = Math.cos(radians(yaw));
+		view = lookAt(cameraPos, add(cameraPos, cameraDir), cameraUp);
+		gl.uniformMatrix4fv(mView, false, flatten(view)); 
 	}
-};
+}, false);
+
+document.addEventListener('mousemove', function() {
+	yaw -= oldX - event.clientX;
+	pitch -= oldY - event.clientY;
+
+	oldX = event.clientX;
+	oldY = event.clientY;
+
+	cameraDir[0] = Math.cos(radians(yaw)) * Math.cos(radians(pitch));
+	cameraDir[1] = Math.sin(radians(pitch));
+	cameraDir[2] = Math.sin(radians(yaw)) * Math.cos(radians(pitch));
+	view = lookAt(cameraPos, add(cameraPos, cameraDir), cameraUp);
+	gl.uniformMatrix4fv(mView, false, flatten(view));
+}, false);
 
 function loop() {
-	if(check) {
-		r += angle;
-		draw(lev);
-	}
-
+	draw(lev);
 	window.requestAnimationFrame(loop);
 }
 
@@ -123,7 +147,8 @@ window.onload = function() {
 
 	// Load vertex shader variable locations
 	mProjection = gl.getUniformLocation(program, "mProjection");
-	mCamera = gl.getUniformLocation(program, "mCamera");
+	mView = gl.getUniformLocation(program, "mView");
+	mModel = gl.getUniformLocation(program, "mModel");
     vPosition = gl.getAttribLocation(program, "vPosition");
 	fScale = gl.getAttribLocation(program, "fScale");
 	vTrans = gl.getAttribLocation(program, "vTrans");
@@ -139,7 +164,8 @@ window.onload = function() {
 	gl.uniform3fv(vLightColor, [1.0, 1.0, 1.0]);
 
 	gl.uniformMatrix4fv(mProjection, false, flatten(perspective(30, 1000/700, 1, 1000))); 
-	gl.uniformMatrix4fv(mCamera, false, camera); 
+	gl.uniformMatrix4fv(mView, false, flatten(view)); 
+	gl.uniformMatrix4fv(mModel, false, flatten(model));
 
 	draw(2);
 	loop();
@@ -153,9 +179,6 @@ function draw(count) {
     gl.clear( gl.COLOR_BUFFER_BIT );
 	sierpinski(vec3(0,0,0), count, 0);
 
-	gl.uniform1f(fThetaX, radians(thetaX));
-	gl.uniform1f(fThetaY, radians(thetaY));
-	gl.uniform1f(fThetaZ, radians(thetaZ));
 
     // Load the data into the GPU
     var bufferId = gl.createBuffer();

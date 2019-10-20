@@ -5,7 +5,8 @@
 		<link rel="stylesheet" href="style.css">
 		<script id="vertex-shader" type="x-shader/x-vertex">
 			uniform mat4 mProjection;
-			uniform mat4 mCamera;
+			uniform mat4 mView;
+			uniform mat4 mModel;
 			attribute vec4 vPosition;
 			attribute vec3 vTrans;
 			attribute float fScale;
@@ -38,7 +39,7 @@
 								  vec4(  0,   0,   0,   1));
 				
 				vec4 vModPos = mTranslate*scale*mRotateX*mRotateY*mRotateZ*vPosition;
-				gl_Position = mProjection*mCamera*vModPos;
+				gl_Position = mProjection*mView*mModel*vModPos;
 			}
 		</script>
 		<script id="fragment-shader" type="x-shader/x-fragment">
