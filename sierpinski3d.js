@@ -38,9 +38,11 @@ view.matrix = true;
 var cameraPos = vec3(0,0,0);
 var cameraDir = vec3(0,0,-1);
 var cameraUp = vec3(0,1,0);
+var cameraRight = vec3(1,0,0);
 
 var yaw = 180;
 var pitch = 180;
+var roll = 0;
 
 var oldX = 0;
 var oldY = 0;
@@ -82,37 +84,44 @@ document.getElementById("thetaZ").onchange = function() {
 document.addEventListener('keydown', function() {
 	speed = .1;
 	if(event.code=="ArrowUp") {
-		cameraPos = subtract(cameraPos, scale(speed, cameraDir));
+		cameraPos = add(cameraPos, scale(speed, cameraDir));
 		view = lookAt(cameraPos, add(cameraPos, cameraDir), cameraUp);
 		gl.uniformMatrix4fv(mView, false, flatten(view)); 
 	}
 
 	if(event.code=="ArrowDown") {
-		cameraPos = add(cameraPos, scale(speed, cameraDir));
+		cameraPos = subtract(cameraPos, scale(speed, cameraDir));
 		view = lookAt(cameraPos, add(cameraPos, cameraDir), cameraUp);
 		gl.uniformMatrix4fv(mView, false, flatten(view)); 
 	}
 	
 	if(event.code=="ArrowLeft") {
-		yaw -= 1;
-		cameraDir[0] = Math.sin(radians(yaw));
-		cameraDir[2] = Math.cos(radians(yaw));
+		cameraPos = subtract(cameraPos, scale(speed, cameraRight));
 		view = lookAt(cameraPos, add(cameraPos, cameraDir), cameraUp);
 		gl.uniformMatrix4fv(mView, false, flatten(view)); 
 	}
 	
 	if(event.code=="ArrowRight") {
-		yaw += 1;
-		cameraDir[0] = Math.sin(radians(yaw));
-		cameraDir[2] = Math.cos(radians(yaw));
+		cameraPos = add(cameraPos, scale(speed, cameraRight));
 		view = lookAt(cameraPos, add(cameraPos, cameraDir), cameraUp);
 		gl.uniformMatrix4fv(mView, false, flatten(view)); 
+	}
+	if(event.code=="KeyA") {
+		roll++;
+		cameraUp[0] = Math.cos(radians(roll));
+		cameraUp[1] = Math.sin(radians(roll));
+		cameraUp[2] = Math.cos(radians(roll));
+
+		cameraRight = cross(cameraDir, cameraUp);
+
+		view = lookAt(cameraPos, add(cameraPos, cameraDir), cameraUp);
+		gl.uniformMatrix4fv(mView, false, flatten(view));
 	}
 }, false);
 
 document.addEventListener('mousemove', function() {
 	yaw -= oldX - event.clientX;
-	pitch -= oldY - event.clientY;
+	pitch += oldY - event.clientY;
 
 	oldX = event.clientX;
 	oldY = event.clientY;
@@ -120,6 +129,9 @@ document.addEventListener('mousemove', function() {
 	cameraDir[0] = Math.cos(radians(yaw)) * Math.cos(radians(pitch));
 	cameraDir[1] = Math.sin(radians(pitch));
 	cameraDir[2] = Math.sin(radians(yaw)) * Math.cos(radians(pitch));
+
+	cameraRight = cross(cameraDir, cameraUp);
+
 	view = lookAt(cameraPos, add(cameraPos, cameraDir), cameraUp);
 	gl.uniformMatrix4fv(mView, false, flatten(view));
 }, false);
