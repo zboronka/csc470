@@ -35,14 +35,23 @@ var view = [vec4(1, 0, 0, 0),
 	        vec4(0, 0, 1, 0),
 	        vec4(0, 0, 0, 1)];
 view.matrix = true;
+
 var cameraPos = vec3(0,0,0);
 var cameraDir = vec3(0,0,-1);
 var cameraUp = vec3(0,1,0);
 var cameraRight = vec3(1,0,0);
 
-var yaw = 180;
+var yaw = 90;
 var pitch = 180;
 var roll = 0;
+
+var cubeX = 0;
+var cubeY = 0;
+var cubeZ = 0;
+
+var cubeXinc = 0;
+var cubeYinc = 0;
+var cubeZinc = 0;
 
 var oldX = 0;
 var oldY = 0;
@@ -53,7 +62,6 @@ var model = [vec4(1, 0, 0, 0),
 	         vec4(0, 0, 0, 1)];
 model.matrix=true;
 
-var angle = 1;
 var lev = 2;
 var check = false;
 
@@ -65,20 +73,16 @@ document.getElementById("rotate").onchange = function() {
 	check = document.getElementById("rotate").checked;
 };
 
-document.getElementById("gl-canvas").onclick = function() {
-	angle *= -1;
-};
-
 document.getElementById("thetaX").onchange = function() {
-	gl.uniform1f(fThetaX, radians(document.getElementById("thetaX").value));
+	cubeXinc = parseInt(document.getElementById("thetaX").value, 10) / 100;
 };
 
 document.getElementById("thetaY").onchange = function() {
-	gl.uniform1f(fThetaY, radians(document.getElementById("thetaY").value));
+	cubeYinc = parseInt(document.getElementById("thetaY").value, 10) / 100;
 };
 
 document.getElementById("thetaZ").onchange = function() {
-	gl.uniform1f(fThetaZ, radians(document.getElementById("thetaZ").value));
+	cubeZinc = parseInt(document.getElementById("thetaZ").value, 10) / 100;
 };
 
 document.addEventListener('keydown', function() {
@@ -106,6 +110,7 @@ document.addEventListener('keydown', function() {
 		view = lookAt(cameraPos, add(cameraPos, cameraDir), cameraUp);
 		gl.uniformMatrix4fv(mView, false, flatten(view)); 
 	}
+
 	if(event.code=="KeyA") {
 		roll++;
 		cameraRight[0] = Math.cos(radians(roll));
@@ -129,10 +134,11 @@ document.addEventListener('mousemove', function() {
 	cameraDir[0] = Math.cos(radians(yaw)) * Math.cos(radians(pitch));
 	cameraDir[1] = Math.sin(radians(pitch));
 	cameraDir[2] = Math.sin(radians(yaw)) * Math.cos(radians(pitch));
-	
-	//cameraDir[1] = (-Math.sin(radians(roll)) * Math.cos(radians(yaw))) - (Math.cos(radians(roll)) * Math.sin(radians(pitch)) * Math.sin(radians(yaw)));
-	//cameraDir[1] = Math.cos(radians(roll)) * Math.cos(radians(pitch));
-	//cameraDir[2] = (Math.sin(radians(roll)) * Math.sin(radians(yaw))) - (Math.cos(radians(roll)) * Math.sin(radians(pitch)) * Math.cos(radians(yaw)));
+
+	var oldx = cameraDir[0];
+
+	cameraDir[0] = cameraDir[0] * Math.cos(radians(roll)) - cameraDir[1] * Math.sin(radians(roll));
+	cameraDir[1] = oldx * Math.sin(radians(roll)) + cameraDir[1] * Math.cos(radians(roll));
 
 	cameraRight = cross(cameraDir, cameraUp);
 
@@ -140,7 +146,31 @@ document.addEventListener('mousemove', function() {
 	gl.uniformMatrix4fv(mView, false, flatten(view));
 }, false);
 
+document.addEventListener('click', function() {
+	oldX = event.clientX;
+	oldY = event.clientY;
+
+	yaw = 90;
+	pitch = 180;
+	roll = 0;
+
+	cameraPos = vec3(0,0,0);
+	cameraDir = vec3(0,0,-1);
+	cameraUp = vec3(0,1,0);
+	cameraRight = vec3(1,0,0);
+
+	view = lookAt(cameraPos, add(cameraPos, cameraDir), cameraUp);
+	gl.uniformMatrix4fv(mView, false, flatten(view));
+}, false);
+
 function loop() {
+	cubeX += cubeXinc;
+	cubeY += cubeYinc;
+	cubeZ += cubeZinc;
+
+	gl.uniform1f(fThetaX, cubeX);
+	gl.uniform1f(fThetaY, cubeY);
+	gl.uniform1f(fThetaZ, cubeZ);
 	draw(lev);
 	window.requestAnimationFrame(loop);
 }
