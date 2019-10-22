@@ -126,13 +126,13 @@ document.addEventListener('mousemove', function() {
 	oldX = event.clientX;
 	oldY = event.clientY;
 
-	//cameraDir[0] = Math.cos(radians(yaw)) * Math.cos(radians(pitch));
-	//cameraDir[1] = Math.sin(radians(pitch));
-	//cameraDir[2] = Math.sin(radians(yaw)) * Math.cos(radians(pitch));
+	cameraDir[0] = Math.cos(radians(yaw)) * Math.cos(radians(pitch));
+	cameraDir[1] = Math.sin(radians(pitch));
+	cameraDir[2] = Math.sin(radians(yaw)) * Math.cos(radians(pitch));
 	
-	cameraDir[1] = (-Math.sin(radians(roll)) * Math.cos(radians(yaw))) - (Math.cos(radians(roll)) * Math.sin(radians(pitch)) * Math.sin(radians(yaw)));
-	cameraDir[1] = Math.cos(radians(roll)) * Math.cos(radians(pitch));
-	cameraDir[2] = (Math.sin(radians(roll)) * Math.sin(radians(yaw))) - (Math.cos(radians(roll)) * Math.sin(radians(pitch)) * Math.cos(radians(yaw)));
+	//cameraDir[1] = (-Math.sin(radians(roll)) * Math.cos(radians(yaw))) - (Math.cos(radians(roll)) * Math.sin(radians(pitch)) * Math.sin(radians(yaw)));
+	//cameraDir[1] = Math.cos(radians(roll)) * Math.cos(radians(pitch));
+	//cameraDir[2] = (Math.sin(radians(roll)) * Math.sin(radians(yaw))) - (Math.cos(radians(roll)) * Math.sin(radians(pitch)) * Math.cos(radians(yaw)));
 
 	cameraRight = cross(cameraDir, cameraUp);
 
