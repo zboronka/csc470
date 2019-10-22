@@ -143,6 +143,9 @@ function loop() {
 
 window.onload = function() {
     canvas = document.getElementById( "gl-canvas" );
+	if('pointerLockElement' in document) {
+		canvas.requestPointerLock();
+	}
     
     gl = WebGLUtils.setupWebGL( canvas );
     if ( !gl ) { alert( "WebGL isn't available" ); }
