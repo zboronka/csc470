@@ -108,11 +108,11 @@ document.addEventListener('keydown', function() {
 	}
 	if(event.code=="KeyA") {
 		roll++;
-		cameraUp[0] = Math.cos(radians(roll));
-		cameraUp[1] = Math.sin(radians(roll));
-		cameraUp[2] = Math.cos(radians(roll));
+		cameraRight[0] = Math.cos(radians(roll));
+		cameraRight[1] = Math.sin(radians(roll));
+		cameraRight[2] = Math.cos(radians(roll));
 
-		cameraRight = cross(cameraDir, cameraUp);
+		cameraUp = cross(cameraDir, cameraRight);
 
 		view = lookAt(cameraPos, add(cameraPos, cameraDir), cameraUp);
 		gl.uniformMatrix4fv(mView, false, flatten(view));
@@ -126,9 +126,13 @@ document.addEventListener('mousemove', function() {
 	oldX = event.clientX;
 	oldY = event.clientY;
 
-	cameraDir[0] = Math.cos(radians(yaw)) * Math.cos(radians(pitch));
-	cameraDir[1] = Math.sin(radians(pitch));
-	cameraDir[2] = Math.sin(radians(yaw)) * Math.cos(radians(pitch));
+	//cameraDir[0] = Math.cos(radians(yaw)) * Math.cos(radians(pitch));
+	//cameraDir[1] = Math.sin(radians(pitch));
+	//cameraDir[2] = Math.sin(radians(yaw)) * Math.cos(radians(pitch));
+	
+	cameraDir[1] = (-Math.sin(radians(roll)) * Math.cos(radians(yaw))) - (Math.cos(radians(roll)) * Math.sin(radians(pitch)) * Math.sin(radians(yaw)));
+	cameraDir[1] = Math.cos(radians(roll)) * Math.cos(radians(pitch));
+	cameraDir[2] = (Math.sin(radians(roll)) * Math.sin(radians(yaw))) - (Math.cos(radians(roll)) * Math.sin(radians(pitch)) * Math.cos(radians(yaw)));
 
 	cameraRight = cross(cameraDir, cameraUp);
 
