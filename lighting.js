@@ -19,6 +19,7 @@ var fThetaZ;
 var vObjColor;
 var vLightColor;
 var vLightPos;
+var vViewPos;
 
 var points = [];
 var scales = [];
@@ -261,9 +262,11 @@ window.onload = function() {
 	// Load fragment shader variable locations
 	vObjColor = gl.getUniformLocation(program, "vObjColor");
 	vLightColor = gl.getUniformLocation(program, "vLightColor");
+	vViewPos = gl.getUniformLocation(program, "vViewPos");
 
 	gl.uniform3fv(vObjColor, objcolor);
 	gl.uniform3fv(vLightColor, lightcolor);
+	gl.uniform3fv(vViewPos, vec3(0,0,0));
 
 	gl.uniformMatrix4fv(mProjection, false, flatten(perspective(30, 1000/700, 1, 1000))); 
 	gl.uniformMatrix4fv(mView, false, flatten(view)); 
@@ -340,6 +343,8 @@ function draw(count) {
     // Associate out shader variables with our data buffer
     gl.vertexAttribPointer(vNormal, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vNormal);
+
+	gl.uniform3fv(vViewPos, vec3(view[0][3],view[1][3],view[1][3]));
 
     gl.drawArrays(check ? gl.LINES : gl.TRIANGLES, 0, points.length);
 }
