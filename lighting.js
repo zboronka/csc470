@@ -1,11 +1,15 @@
 var canvas;
 var gl;
 
+var program;
+var lightProgram;
+
 var mProjection;
 var mView;
 var mModel;
 
 var vPosition;
+var vNormal;
 var fScale;
 var vTrans;
 var fThetaX;
@@ -14,10 +18,12 @@ var fThetaZ;
 
 var vObjColor;
 var vLightColor;
+var vLightPos;
 
 var points = [];
 var scales = [];
 var trans = [];
+var normals = [];
 
 var vertices = [
 	vec3( -1,  1, 1 ),
@@ -28,6 +34,15 @@ var vertices = [
 	vec3( -1, -1, -1 ),
 	vec3(  1,  1, -1 ),
 	vec3(  1, -1, -1 ),
+];
+
+var norms = [
+	vec3( 0,  0,  1),  // FRONT
+	vec3( 0,  1,  0),  // UP
+	vec3( 1,  0,  0),  // RIGHT
+	vec3( 0, -1,  0),  // DOWN
+	vec3(-1,  0,  0),  // LEFT
+	vec3( 0,  0, -1)   // BACK
 ];
 
 var view = [vec4(1, 0, 0, 0),
@@ -61,6 +76,21 @@ var model = [vec4(1, 0, 0, 0),
 	         vec4(0, 0, 1, -5),
 	         vec4(0, 0, 0, 1)];
 model.matrix=true;
+var lightmodel = [vec4(1, 0, 0, 0.5),
+	              vec4(0, 1, 0, 0.5),
+	              vec4(0, 0, 1, -3),
+	              vec4(0, 0, 0, 1)];
+lightmodel.matrix=true;
+
+var squarelight = new Float32Array([-0.1,  0.1,  0.1, -0.1, -0.1,  0.1,  0.1, -0.1,  0.1,  -0.1,  0.1,  0.1,  0.1, -0.1,  0.1,  0.1,  0.1,  0.1,
+                                     0.1,  0.1,  0.1,  0.1,  0.1, -0.1, -0.1,  0.1,  0.1,  -0.1,  0.1, -0.1, -0.1,  0.1,  0.1,  0.1,  0.1, -0.1,
+                                     0.1,  0.1,  0.1,  0.1, -0.1,  0.1,  0.1, -0.1, -0.1,   0.1,  0.1,  0.1,  0.1, -0.1, -0.1,  0.1,  0.1, -0.1,
+                                     0.1, -0.1,  0.1, -0.1, -0.1,  0.1, -0.1, -0.1, -0.1,   0.1, -0.1,  0.1, -0.1, -0.1, -0.1,  0.1, -0.1, -0.1,
+                                    -0.1,  0.1,  0.1, -0.1,  0.1, -0.1, -0.1, -0.1,  0.1,  -0.1, -0.1,  0.1, -0.1,  0.1, -0.1, -0.1, -0.1, -0.1,
+                                    -0.1,  0.1, -0.1,  0.1,  0.1, -0.1,  0.1, -0.1, -0.1,  -0.1,  0.1, -0.1,  0.1, -0.1, -0.1, -0.1, -0.1, -0.1]);
+
+lightcolor = vec3(1,1,1);
+objcolor = vec3(.2,0,0);
 
 var lev = 2;
 var check = false;
@@ -125,8 +155,8 @@ document.addEventListener('keydown', function() {
 }, false);
 
 document.addEventListener('mousemove', function() {
-	yaw += oldX - event.clientX;
-	pitch += oldY - event.clientY;
+	yaw -= oldX - event.clientX;
+	pitch -= oldY - event.clientY;
 
 	oldX = event.clientX;
 	oldY = event.clientY;
@@ -135,9 +165,9 @@ document.addEventListener('mousemove', function() {
 	cameraDir[1] = Math.sin(radians(pitch));
 	cameraDir[2] = Math.sin(radians(yaw)) * Math.cos(radians(pitch));
 
-	cameraUp[0] = Math.cos(radians(yaw)) * Math.cos(radians(pitch+90));
-	cameraUp[1] = Math.sin(radians(pitch+90));
-	cameraUp[2] = Math.sin(radians(yaw)) * Math.cos(radians(pitch+90));
+	cameraUp[0] = Math.cos(radians(yaw)) * Math.cos(radians(pitch-90));
+	cameraUp[1] = Math.sin(radians(pitch-90));
+	cameraUp[2] = Math.sin(radians(yaw)) * Math.cos(radians(pitch-90));
 
 	var oldx = cameraDir[0];
 	var oldcx = cameraUp[0];
@@ -196,14 +226,32 @@ window.onload = function() {
     gl.clearColor( 0.0, 0.0, 0.0, 1.0 );
 
     //  Load shaders and initialize attribute buffers
+	
+	lightProgram = initShaders(gl, "light-v-shader", "light-f-shader");
     program = initShaders( gl, "vertex-shader", "fragment-shader" );
-    gl.useProgram( program );
+	
+	gl.useProgram(lightProgram);
+
+	var lmodel = gl.getUniformLocation(lightProgram, "model");
+	var lview = gl.getUniformLocation(lightProgram, "view");
+	var lpers = gl.getUniformLocation(lightProgram, "perspective");
+
+	vLightPos = gl.getUniformLocation(lightProgram, "vLightPos");
+
+	gl.uniformMatrix4fv(lmodel, false, flatten(lightmodel));  
+	gl.uniformMatrix4fv(lview, false, flatten(view));  
+	gl.uniformMatrix4fv(lpers, false, flatten(flatten(perspective(30, 1000/700, 1, 1000))));  
+
+	gl.uniform3fv(vLightPos, vec3(0.5, 0.5, -3));
+
+	gl.useProgram(program);
 
 	// Load vertex shader variable locations
 	mProjection = gl.getUniformLocation(program, "mProjection");
 	mView = gl.getUniformLocation(program, "mView");
 	mModel = gl.getUniformLocation(program, "mModel");
     vPosition = gl.getAttribLocation(program, "vPosition");
+	vNormal = gl.getAttribLocation(program, "vNormal");
 	fScale = gl.getAttribLocation(program, "fScale");
 	vTrans = gl.getAttribLocation(program, "vTrans");
 	fThetaX = gl.getUniformLocation(program, "fThetaX");
@@ -211,11 +259,11 @@ window.onload = function() {
 	fThetaZ = gl.getUniformLocation(program, "fThetaZ");
 
 	// Load fragment shader variable locations
-	vObjColor = gl.getUniformLocation( program, "vObjColor" );
-	vLightColor = gl.getUniformLocation( program, "vLightColor" );
+	vObjColor = gl.getUniformLocation(program, "vObjColor");
+	vLightColor = gl.getUniformLocation(program, "vLightColor");
 
-	gl.uniform3fv(vObjColor, [0.2, 0.0, 0.0]);
-	gl.uniform3fv(vLightColor, [1.0, 1.0, 1.0]);
+	gl.uniform3fv(vObjColor, objcolor);
+	gl.uniform3fv(vLightColor, lightcolor);
 
 	gl.uniformMatrix4fv(mProjection, false, flatten(perspective(30, 1000/700, 1, 1000))); 
 	gl.uniformMatrix4fv(mView, false, flatten(view)); 
@@ -232,8 +280,29 @@ function draw(count) {
 	points = [];
 	scales = [];
 	trans = [];
+	normals = [];
 
     gl.clear( gl.COLOR_BUFFER_BIT );
+
+	gl.useProgram(lightProgram);
+
+	var lview = gl.getUniformLocation(lightProgram, "view");
+	var col = gl.getUniformLocation(lightProgram, "vLightColor");
+
+	gl.uniformMatrix4fv(lview, false, flatten(view));  
+	gl.uniform3fv(col, lightcolor);
+
+	var bufferId = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, bufferId);
+	gl.bufferData(gl.ARRAY_BUFFER, squarelight, gl.STATIC_DRAW);
+
+	var vPos = gl.getAttribLocation(lightProgram, "vPos");
+	gl.vertexAttribPointer(vPos, 3, gl.FLOAT, false, 0, 0);
+	gl.enableVertexAttribArray(vPos);
+
+	gl.drawArrays(gl.TRIANGLES, 0, squarelight.length/3);
+
+	gl.useProgram(program);
 	sierpinski(vec3(0,0,0), count, 0);
 
     // Load the data into the GPU
@@ -263,6 +332,15 @@ function draw(count) {
     gl.vertexAttribPointer(vPosition, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
 
+    // Load the data into the GPU
+    var bufferId = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, bufferId);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(normals), gl.STATIC_DRAW);
+
+    // Associate out shader variables with our data buffer
+    gl.vertexAttribPointer(vNormal, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vNormal);
+
     gl.drawArrays(check ? gl.LINES : gl.TRIANGLES, 0, points.length);
 }
 
@@ -280,17 +358,22 @@ function cube(transform, scale) {
 	            scale, scale, scale, scale, scale, scale,
 	            scale, scale, scale, scale, scale, scale);
 	points.push(vertices[0], vertices[1], vertices[2], vertices[1], vertices[3], vertices[2],  // FRONT
-	            vertices[0], vertices[4], vertices[1], vertices[1], vertices[4], vertices[5],  // LEFT
 	            vertices[0], vertices[2], vertices[6], vertices[0], vertices[6], vertices[4],  // UP
-	            vertices[4], vertices[6], vertices[5], vertices[5], vertices[6], vertices[7],  // BACK
+	            vertices[2], vertices[3], vertices[6], vertices[6], vertices[3], vertices[7],  // RIGHT
 	            vertices[1], vertices[7], vertices[3], vertices[1], vertices[5], vertices[7],  // DOWN
-	            vertices[2], vertices[3], vertices[6], vertices[6], vertices[3], vertices[7]); // RIGHT
+	            vertices[0], vertices[4], vertices[1], vertices[1], vertices[4], vertices[5],  // LEFT
+	            vertices[4], vertices[6], vertices[5], vertices[5], vertices[6], vertices[7]); // BACK
 	trans.push(transform, transform, transform, transform, transform, transform,
 	           transform, transform, transform, transform, transform, transform,
 	           transform, transform, transform, transform, transform, transform,
 	           transform, transform, transform, transform, transform, transform,
 	           transform, transform, transform, transform, transform, transform,
 	           transform, transform, transform, transform, transform, transform);
+	for(i = 0; i < 6; i++) {
+		for(j = 0; j < 6; j++) {
+			normals.push(norms[i]);
+		}
+	}
 }
 
 function sierpinski(t, count, level) {
