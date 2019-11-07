@@ -20,11 +20,13 @@ var vObjColor;
 var vLightColor;
 var vLightPos;
 var vViewPos;
+var vTexCoord;
 
 var points = [];
 var scales = [];
 var trans = [];
 var normals = [];
+var texs = [];
 
 var vertices = [
 	vec3( -1,  1, 1 ),
@@ -91,7 +93,7 @@ var squarelight = new Float32Array([-0.1,  0.1,  0.1, -0.1, -0.1,  0.1,  0.1, -0
                                     -0.1,  0.1, -0.1,  0.1,  0.1, -0.1,  0.1, -0.1, -0.1,  -0.1,  0.1, -0.1,  0.1, -0.1, -0.1, -0.1, -0.1, -0.1]);
 
 lightcolor = vec3(1,1,1);
-objcolor = vec3(.2,0,0);
+objcolor = vec3(1,1,1);
 
 var lev = 2;
 var check = false;
@@ -236,6 +238,7 @@ window.onload = function() {
 	var lmodel = gl.getUniformLocation(lightProgram, "model");
 	var lview = gl.getUniformLocation(lightProgram, "view");
 	var lpers = gl.getUniformLocation(lightProgram, "perspective");
+	var texture = gl.getUniformLocation(lightProgram, "texture");
 
 	vLightPos = gl.getUniformLocation(lightProgram, "vLightPos");
 
@@ -244,6 +247,19 @@ window.onload = function() {
 	gl.uniformMatrix4fv(lpers, false, flatten(flatten(perspective(30, 1000/700, 1, 1000))));  
 
 	gl.uniform3fv(vLightPos, vec3(0.5, 0.5, -3));
+
+	var text = loadTexture(gl, "texture3.jpg");
+
+	//gl.NEAREST is also allowed, instead of gl.LINEAR, as neither mipmap.
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	// Prevents s-coordinate wrapping (repeating).
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	// Prevents t-coordinate wrapping (repeating).
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+	gl.activeTexture(gl.TEXTURE0);
+	gl.bindTexture(gl.TEXTURE_2D, text);
+	gl.uniform1i(texture, 0);
 
 	gl.useProgram(program);
 
@@ -263,6 +279,7 @@ window.onload = function() {
 	vObjColor = gl.getUniformLocation(program, "vObjColor");
 	vLightColor = gl.getUniformLocation(program, "vLightColor");
 	vViewPos = gl.getUniformLocation(program, "vViewPos");
+	vTexCoord = gl.getUniformLocation(program, "vTexCoord");
 
 	gl.uniform3fv(vObjColor, objcolor);
 	gl.uniform3fv(vLightColor, lightcolor);
@@ -284,6 +301,7 @@ function draw(count) {
 	scales = [];
 	trans = [];
 	normals = [];
+	texs = [];
 
     gl.clear( gl.COLOR_BUFFER_BIT );
 
@@ -307,6 +325,15 @@ function draw(count) {
 
 	gl.useProgram(program);
 	sierpinski(vec3(0,0,0), count, 0);
+
+    // Load the data into the GPU
+    var bufferId = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, bufferId);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(texs), gl.STATIC_DRAW);
+
+    // Associate out shader variables with our data buffer
+    gl.vertexAttribPointer(vTexCoord, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vTexCoord);
 
     // Load the data into the GPU
     var bufferId = gl.createBuffer();
@@ -376,6 +403,12 @@ function cube(transform, scale) {
 	           transform, transform, transform, transform, transform, transform);
 	for(i = 0; i < 6; i++) {
 		for(j = 0; j < 6; j++) {
+			texs.push(0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,0.0, 0.0,1.0, 1.0,1.0);
+		}
+	}
+
+	for(i = 0; i < 6; i++) {
+		for(j = 0; j < 6; j++) {
 			normals.push(norms[i]);
 		}
 	}
@@ -439,4 +472,58 @@ function sierpinski(t, count, level) {
 		sierpinski(vec3(t[0], t[1], t[2]+div), count, level);         // C C F
 		sierpinski(vec3(t[0], t[1], t[2]-div), count, level);         // C C B
 	}
+}
+
+
+// Initialize a texture and load an image.
+// When the image finished loading copy it into the texture.
+//
+function loadTexture(gl, url) {
+	const texture = gl.createTexture();
+	gl.bindTexture(gl.TEXTURE_2D, texture);
+
+	// Because images have to be download over the internet
+	// they might take a moment until they are ready.
+	// Until then put a single pixel in the texture so we can
+	// use it immediately. When the image has finished downloading
+	// we'll update the texture with the contents of the image.
+	const level = 0;
+	const internalFormat = gl.RGBA;
+	const width = 1;
+	const height = 1;
+	const border = 0;
+	const srcFormat = gl.RGBA;
+	const srcType = gl.UNSIGNED_BYTE;
+	const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
+	gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+				  width, height, border, srcFormat, srcType,
+				  pixel);
+
+	const image = new Image();
+	image.onload = function() {
+		gl.bindTexture(gl.TEXTURE_2D, texture);
+		gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+					  srcFormat, srcType, image);
+
+		// WebGL1 has different requirements for power of 2 images
+		// vs non power of 2 images so check if the image is a
+		// power of 2 in both dimensions.
+		if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+			// Yes, it's a power of 2. Generate mips.
+			gl.generateMipmap(gl.TEXTURE_2D);
+		} else {
+			// No, it's not a power of 2. Turn off mips and set
+			// wrapping to clamp to edge
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+		}
+	};
+	image.src = url;
+
+	return texture;
+}
+
+function isPowerOf2(value) {
+	return (value & (value - 1)) == 0;
 }
