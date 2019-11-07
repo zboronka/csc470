@@ -75,7 +75,7 @@
 				FragPos = vec3(mModel * vModPos);
 
 				gl_Position = mProjection*mView*mModel*vModPos;
-				TexCoord = vTexCoord;
+				TexCoord = vec2(textran*vPosition);
 			}
 		</script>
 		<script id="fragment-shader" type="x-shader/x-fragment">

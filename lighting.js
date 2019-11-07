@@ -269,6 +269,7 @@ window.onload = function() {
 	mModel = gl.getUniformLocation(program, "mModel");
     vPosition = gl.getAttribLocation(program, "vPosition");
 	vNormal = gl.getAttribLocation(program, "vNormal");
+	vTexCoord = gl.getAttribLocation(program, "vTexCoord");
 	fScale = gl.getAttribLocation(program, "fScale");
 	vTrans = gl.getAttribLocation(program, "vTrans");
 	fThetaX = gl.getUniformLocation(program, "fThetaX");
@@ -279,7 +280,6 @@ window.onload = function() {
 	vObjColor = gl.getUniformLocation(program, "vObjColor");
 	vLightColor = gl.getUniformLocation(program, "vLightColor");
 	vViewPos = gl.getUniformLocation(program, "vViewPos");
-	vTexCoord = gl.getUniformLocation(program, "vTexCoord");
 
 	gl.uniform3fv(vObjColor, objcolor);
 	gl.uniform3fv(vLightColor, lightcolor);
@@ -403,7 +403,7 @@ function cube(transform, scale) {
 	           transform, transform, transform, transform, transform, transform);
 	for(i = 0; i < 6; i++) {
 		for(j = 0; j < 6; j++) {
-			texs.push(0.0,0.0, 1.0,0.0, 1.0,1.0, 0.0,0.0, 0.0,1.0, 1.0,1.0);
+			texs.push(0.0,1.0, 0.0,0.0, 1.0,1.0, 0.0,0.0, 1.0,0.0, 1.0,1.0);
 		}
 	}
 
