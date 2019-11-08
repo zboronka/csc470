@@ -371,7 +371,7 @@ function draw(count) {
     gl.vertexAttribPointer(vNormal, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vNormal);
 
-	gl.uniform3fv(vViewPos, vec3(view[0][3],view[1][3],view[1][3]));
+	gl.uniform3fv(vViewPos, vec3(view[0][3],view[1][3],view[2][3]));
 
     gl.drawArrays(check ? gl.LINES : gl.TRIANGLES, 0, points.length);
 }
