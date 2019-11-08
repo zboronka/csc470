@@ -390,11 +390,11 @@ function cube(transform, scale) {
 	            scale, scale, scale, scale, scale, scale,
 	            scale, scale, scale, scale, scale, scale);
 	points.push(vertices[0], vertices[1], vertices[2], vertices[1], vertices[3], vertices[2],  // FRONT
-	            vertices[0], vertices[2], vertices[6], vertices[0], vertices[6], vertices[4],  // UP
-	            vertices[2], vertices[3], vertices[6], vertices[6], vertices[3], vertices[7],  // RIGHT
-	            vertices[1], vertices[7], vertices[3], vertices[1], vertices[5], vertices[7],  // DOWN
-	            vertices[0], vertices[4], vertices[1], vertices[1], vertices[4], vertices[5],  // LEFT
-	            vertices[4], vertices[6], vertices[5], vertices[5], vertices[6], vertices[7]); // BACK
+	            vertices[4], vertices[0], vertices[6], vertices[0], vertices[2], vertices[6],  // UP
+	            vertices[2], vertices[3], vertices[6], vertices[3], vertices[7], vertices[6],  // RIGHT
+	            vertices[1], vertices[5], vertices[3], vertices[5], vertices[7], vertices[3],  // DOWN
+	            vertices[4], vertices[5], vertices[0], vertices[5], vertices[1], vertices[0],  // LEFT
+	            vertices[6], vertices[7], vertices[4], vertices[7], vertices[5], vertices[4]); // BACK
 	trans.push(transform, transform, transform, transform, transform, transform,
 	           transform, transform, transform, transform, transform, transform,
 	           transform, transform, transform, transform, transform, transform,
