@@ -152,9 +152,8 @@ document.addEventListener('keydown', function() {
 		roll++;
 		cameraRight[0] = Math.cos(radians(roll));
 		cameraRight[1] = Math.sin(radians(roll));
-		cameraRight[2] = Math.cos(radians(roll));
 
-		cameraUp = cross(cameraDir, cameraRight);
+		cameraUp = cross(cameraRight, cameraDir);
 
 		view = lookAt(cameraPos, add(cameraPos, cameraDir), cameraUp);
 		gl.uniformMatrix4fv(mView, false, flatten(view));
