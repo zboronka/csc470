@@ -98,6 +98,10 @@ objcolor = vec3(1,1,1);
 var lev = 2;
 var check = false;
 
+var text, nmap;
+var textImage = "alien.jpg";
+var mapImage = "alien_normal.jpg";
+
 document.getElementById("level").onchange = function() {
 	lev = document.getElementById("level").value;
 };
@@ -238,30 +242,27 @@ window.onload = function() {
 	var lmodel = gl.getUniformLocation(lightProgram, "model");
 	var lview = gl.getUniformLocation(lightProgram, "view");
 	var lpers = gl.getUniformLocation(lightProgram, "perspective");
-	var texture = gl.getUniformLocation(lightProgram, "texture");
 
 	vLightPos = gl.getUniformLocation(lightProgram, "vLightPos");
 
 	gl.uniformMatrix4fv(lmodel, false, flatten(lightmodel));  
 	gl.uniformMatrix4fv(lview, false, flatten(view));  
-	gl.uniformMatrix4fv(lpers, false, flatten(flatten(perspective(30, 1000/700, 1, 1000))));  
+	gl.uniformMatrix4fv(lpers, false, flatten(flatten(perspective(30, 1000/700, .1, 1000))));  
 
 	gl.uniform3fv(vLightPos, vec3(0.5, 0.5, -3));
 
-	var text = loadTexture(gl, "texture3.jpg");
+	gl.useProgram(program);
 
-	//gl.NEAREST is also allowed, instead of gl.LINEAR, as neither mipmap.
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-	// Prevents s-coordinate wrapping (repeating).
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-	// Prevents t-coordinate wrapping (repeating).
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+	text = loadTexture(gl, textImage);
+	nmap = loadTexture(gl, mapImage);
 
 	gl.activeTexture(gl.TEXTURE0);
 	gl.bindTexture(gl.TEXTURE_2D, text);
-	gl.uniform1i(texture, 0);
+	gl.uniform1i(gl.getUniformLocation(program, "texture"), 0);
 
-	gl.useProgram(program);
+	gl.activeTexture(gl.TEXTURE1);
+	gl.bindTexture(gl.TEXTURE_2D, nmap);
+	gl.uniform1i(gl.getUniformLocation(program, "normalmap"), 1);
 
 	// Load vertex shader variable locations
 	mProjection = gl.getUniformLocation(program, "mProjection");
@@ -285,7 +286,7 @@ window.onload = function() {
 	gl.uniform3fv(vLightColor, lightcolor);
 	gl.uniform3fv(vViewPos, vec3(0,0,0));
 
-	gl.uniformMatrix4fv(mProjection, false, flatten(perspective(30, 1000/700, 1, 1000))); 
+	gl.uniformMatrix4fv(mProjection, false, flatten(perspective(30, 1000/700, .1, 1000))); 
 	gl.uniformMatrix4fv(mView, false, flatten(view)); 
 	gl.uniformMatrix4fv(mModel, false, flatten(model));
 
@@ -522,6 +523,23 @@ function loadTexture(gl, url) {
 	image.src = url;
 
 	return texture;
+}
+
+function load_texture(img_path) {
+		var tex = gl.createTexture();
+		gl.bindTexture(gl.TEXTURE_2D, tex);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+					  		  new Uint8Array([255, 0, 0, 255])); // red
+
+		var img = new Image();
+		img.onload = function() {
+					gl.bindTexture(gl.TEXTURE_2D, tex);
+					gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+					gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+					gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+				}
+		img.src = img_path;
+		return tex;
 }
 
 function isPowerOf2(value) {
