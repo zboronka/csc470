@@ -243,13 +243,9 @@ window.onload = function() {
 	var lview = gl.getUniformLocation(lightProgram, "view");
 	var lpers = gl.getUniformLocation(lightProgram, "perspective");
 
-	vLightPos = gl.getUniformLocation(lightProgram, "vLightPos");
-
 	gl.uniformMatrix4fv(lmodel, false, flatten(lightmodel));  
 	gl.uniformMatrix4fv(lview, false, flatten(view));  
 	gl.uniformMatrix4fv(lpers, false, flatten(flatten(perspective(30, 1000/700, .1, 1000))));  
-
-	gl.uniform3fv(vLightPos, vec3(0.5, 0.5, -3));
 
 	gl.useProgram(program);
 
@@ -281,6 +277,9 @@ window.onload = function() {
 	vObjColor = gl.getUniformLocation(program, "vObjColor");
 	vLightColor = gl.getUniformLocation(program, "vLightColor");
 	vViewPos = gl.getUniformLocation(program, "vViewPos");
+	vLightPos = gl.getUniformLocation(program, "vLightPos");
+
+	gl.uniform3fv(vLightPos, vec3(0.5, 0.5, -3));
 
 	gl.uniform3fv(vObjColor, objcolor);
 	gl.uniform3fv(vLightColor, lightcolor);
