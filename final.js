@@ -593,7 +593,15 @@ document.addEventListener('mousemove', function() {
 	oldX = event.clientX;
 }, false);
 
+document.addEventListener('touchstart', function() {
+	mawsedown = true;
+}, false);
+
 document.addEventListener('touchmove', function() {
 	dirX = oldX - event.clientX;
 	oldX = event.clientX;
+}, false);
+
+document.addEventListener('touchend', function() {
+	mawsedown = false;
 }, false);
