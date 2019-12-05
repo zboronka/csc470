@@ -48,11 +48,14 @@ header {
 }
 
 section {
-	height: 95vh;
 	border-bottom-style: double;
 	border-color: red;
 	border-width: medium;
 	padding: 10px;
+}
+
+.glcanvas {
+	height: 95vh;
 }
 
 h1 {
