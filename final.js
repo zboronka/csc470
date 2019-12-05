@@ -592,3 +592,8 @@ document.addEventListener('mousemove', function() {
 	dirX = oldX - event.clientX;
 	oldX = event.clientX;
 }, false);
+
+document.addEventListener('touchmove', function() {
+	dirX = oldX - event.clientX;
+	oldX = event.clientX;
+}, false);
