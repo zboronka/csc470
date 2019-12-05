@@ -13,7 +13,8 @@ var lefts =   [0, 0, 0, 0, 0, 0, 0, 0, 0];
 var vLightPos;
 
 var Ft = 810, ft = 810, Rt = 810, rt = 810, Bt = 810, bt = 810, Lt = 810, lt = 810, Dt = 810, dt = 810, Ut = 810, ut = 810;
-var moving = false, prime = false;
+var moving = false, prime = false, mawsedown = false;
+var oldX = 0, dirX = 0;
 
 window.onload = function() {
 	var canvas = document.getElementById("gl-canvas");
@@ -96,9 +97,11 @@ window.onload = function() {
 function loop() {
 	gl.clear(gl.COLOR_BUFFER_BIT);
 
-	//cameraLoc = vec3(mult(rotateY(1), vec4(cameraLoc)));
-	//gl.uniformMatrix4fv(mView, false, flatten(lookAt(cameraLoc,vec3(0,0,0),vec3(0,1,0))));
-	//gl.uniform3fv(vViewPos, cameraLoc);
+	if(mawsedown) {
+		cameraLoc = dirX > 0 ? vec3(mult(rotateY(1), vec4(cameraLoc))) : cameraLoc = vec3(mult(rotateY(-1), vec4(cameraLoc)));
+		gl.uniformMatrix4fv(mView, false, flatten(lookAt(cameraLoc,vec3(0,0,0),vec3(0,1,0))));
+		gl.uniform3fv(vViewPos, cameraLoc);
+	}
 
 	move();
 
@@ -392,6 +395,14 @@ function resizeCanvas(canvas) {
 	return false;
 }
 
+document.addEventListener('mousedown', function() {
+	mawsedown = true;
+});
+
+document.addEventListener('mouseup', function() {
+	mawsedown = false;
+});
+
 document.addEventListener('keydown', function() {
 	if(event.code=="KeyP") {
 		prime = !prime;
@@ -576,3 +587,8 @@ function back() {
 		lefts[4] = temp4[0]; middles[4] = temp4[1]; rights[4] = temp4[2];
 	}
 }
+
+document.addEventListener('mousemove', function() {
+	dirX = oldX - event.clientX;
+	oldX = event.clientX;
+}, false);
