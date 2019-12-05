@@ -598,8 +598,8 @@ document.addEventListener('touchstart', function() {
 }, false);
 
 document.addEventListener('touchmove', function() {
-	dirX = oldX - event.clientX;
-	oldX = event.clientX;
+	dirX = oldX - event.changedTouches[0].pageX;
+	oldX = event.changedTouches[0].pageX;
 }, false);
 
 document.addEventListener('touchend', function() {
